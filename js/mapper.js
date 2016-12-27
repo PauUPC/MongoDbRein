@@ -1,5 +1,5 @@
 var f = function() {
-    for (var i = 0; i < this.content.length; i++) {
-        emit(this.content[i],1);
-    }
+    this.list.forEach(function(content){
+        emit(content,1);
+    });
 };
