@@ -10,7 +10,8 @@ MONGO_DB = 'test'
 MONGO_USER = 'user'
 MONGO_PASS = 'toor'
 MONGO_COLLECTION = 'collection'
-MONGO_COLLECTION_RESULT = 'mapreduce'
+MONGO_COLLECTION_RESULT_SINGLE_COUNT = 'mapreduce'
+MONGO_COLLECTION_RESULT_PAIRS = 'mapreducepairs'
 
 
 def get_mongo_db():
@@ -48,36 +49,61 @@ def create_collection(collection):
 def map_reduce(collection):
     mapper = Code("""
     function() {
-        this.list.forEach(function(content){
-            emit(content,1);
+        this.list.forEach(function(key){
+            emit(key,{count: 1});
             });
         };
     """)
 
     reducer = Code("""
     function(key,values) {
-        var total = 0;
-        for (var i = 0; i < values.length; i++) {
-            total += values[i];
-            }
-            return total;
-        };
+        var sum = 0;
+        values.forEach(function(values) {
+            sum += values['count'];
+        });
+        return {count: sum};
+    };
     """)
 
-    result = collection.map_reduce(mapper, reducer, MONGO_COLLECTION_RESULT, full_response=True)
-    print(result)
+    result = collection.map_reduce(mapper, reducer, MONGO_COLLECTION_RESULT_SINGLE_COUNT, full_response=True)
+    print("single", result)
+
+    mapper = Code("""
+    function() {
+        for (var i = 0; i < this.list.length - 1; i++) {
+            for (var j = i; j < this.list.length - 1; j++) {
+                emit({pair: [this.list[i], this.list[j+1]]}, {count: 1});
+            }
+        }
+    };
+    """)
+
+    reducer = Code("""
+    function(key,values) {
+        var sum = 0;
+        values.forEach(function(values) {
+            sum += values['count'];
+        });
+        return {count: sum};
+    };
+    """)
+
+    result = collection.map_reduce(mapper, reducer, MONGO_COLLECTION_RESULT_PAIRS, full_response=True)
+    print("pairs", result)
 
 
 def core():
     db = get_mongo_db()
     collection = db[MONGO_COLLECTION]
     # create_collection(collection)
-    result = db[MONGO_COLLECTION_RESULT]
-    result.remove({})
+    result_single_count = db[MONGO_COLLECTION_RESULT_SINGLE_COUNT]
+    result_single_count.remove({})
+    result_pairs = db[MONGO_COLLECTION_RESULT_PAIRS]
+    result_pairs.remove({})
     map_reduce(collection)
-    cursor = result.find({})
-    for doc in cursor:
-        print(doc)
+    # cursor = result_pairs.find({})
+    # for doc in cursor:
+    #     print(doc)
 
 
 if __name__ == '__main__':

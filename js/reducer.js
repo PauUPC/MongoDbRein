@@ -5,3 +5,11 @@ var f = function(key,values) {
     }
     return total;
 };
+
+var f1 = function(key,values) {
+    var sum = 0;
+    values.forEach(function(values) {
+        sum += values['count'];
+    });
+    return {name: key, count: sum};
+};
