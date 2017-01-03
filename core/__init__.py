@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from bson.code import Code
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from tkinter.simpledialog import askstring
 import csv
 
 MONGO_HOST = 'localhost'
@@ -30,11 +31,10 @@ def create_collection(collection):
     collection.remove({})
 
     # open file dialog
-    # Tk().withdraw()
-    # filename = askopenfilename()
-
-    # static file
-    filename = '../doc/groceries.csv'
+    Tk().withdraw()
+    filename = askopenfilename()
+    if not filename:
+        filename = '../doc/groceries.csv'
 
     # csv to doc and insert
     with open(filename, 'r') as inputCsv:
@@ -92,18 +92,28 @@ def map_reduce(collection):
     print("pairs", result)
 
 
+def recount():
+    Tk().withdraw()
+    suport = askstring("Llindars", "suport en %")
+    confiança = askstring("Llindars", "confiança en %")
+    print("suport: " + suport + " confiança: " + confiança)
+
+
+
+
 def core():
-    db = get_mongo_db()
-    collection = db[MONGO_COLLECTION]
-    # create_collection(collection)
-    result_single_count = db[MONGO_COLLECTION_RESULT_SINGLE_COUNT]
-    result_single_count.remove({})
-    result_pairs = db[MONGO_COLLECTION_RESULT_PAIRS]
-    result_pairs.remove({})
-    map_reduce(collection)
-    # cursor = result_pairs.find({})
-    # for doc in cursor:
-    #     print(doc)
+    recount()
+    # db = get_mongo_db()
+    # collection = db[MONGO_COLLECTION]
+    # # create_collection(collection)
+    # result_single_count = db[MONGO_COLLECTION_RESULT_SINGLE_COUNT]
+    # result_single_count.remove({})
+    # result_pairs = db[MONGO_COLLECTION_RESULT_PAIRS]
+    # result_pairs.remove({})
+    # map_reduce(collection)
+    # # cursor = result_pairs.find({})
+    # # for doc in cursor:
+    # #     print(doc)
 
 
 if __name__ == '__main__':
